@@ -59,7 +59,7 @@ public class Terminal extends Thread {
         if (output == null) {
           continue;
         }
-        //output(output);
+        output(output);
         long t4 = System.currentTimeMillis();
         t.waitForThinking();
         long t5 = System.currentTimeMillis();

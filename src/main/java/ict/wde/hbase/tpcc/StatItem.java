@@ -155,12 +155,22 @@ public class StatItem implements Writable {
         thinkingTimeMin.set(in.readLong());
     }
 
-    public void reset() {
-        count.set(0);
-        timedoutCount.set(0);
-        menuRT.set(0);
-        keyingTime.set(0);
-        txnRT.set(0);
-        thinkingTime.set(0);
+    public StatItem takeAndReset() {
+        StatItem ret = new StatItem();
+        ret.count.set(count.getAndSet(0));
+        ret.timedoutCount.set(timedoutCount.getAndSet(0));
+        ret.menuRT.set(menuRT.getAndSet(0));
+        ret.keyingTime.set(keyingTime.getAndSet(0));
+        ret.txnRT.set(txnRT.getAndSet(0));
+        ret.thinkingTime.set(thinkingTime.getAndSet(0));
+        ret.menuRTMax.set(menuRTMax.get());
+        ret.menuRTMin.set(menuRTMin.get());
+        ret.keyingTimeMax.set(keyingTimeMax.get());
+        ret.keyingTimeMin.set(keyingTimeMin.get());
+        ret.txnRTMax.set(txnRTMax.get());
+        ret.txnRTMin.set(txnRTMin.get());
+        ret.thinkingTimeMax.set(thinkingTimeMax.get());
+        ret.thinkingTimeMin.set(thinkingTimeMin.get());
+        return ret;
     }
 }

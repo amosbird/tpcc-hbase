@@ -90,10 +90,4 @@ public class Statistics {
         }
         return count / minutes;
     }
-
-    public void reset() {
-        for (int i = 0; i < 5; i++) {
-            items[i].reset();
-        }
-    }
 }

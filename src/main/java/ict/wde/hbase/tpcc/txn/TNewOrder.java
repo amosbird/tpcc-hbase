@@ -173,7 +173,8 @@ public class TNewOrder extends TpccTransaction {
       else {
         s_quantity += (91 - quantity[i]);
       }
-      ++s_ytd;
+//      ++s_ytd;
+      s_ytd += quantity[i]; // modified by tianqi
       ++s_order_cnt;
       if (supp_w_id[i] != w_id()) {
         ++s_remote_cnt;

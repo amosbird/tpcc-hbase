@@ -38,8 +38,11 @@ public class Reporter {
                 new TimerTask() {
                     public void run() {
                         try {
-                            center.report(statistics.items);
-                            statistics.reset();
+                            StatItem[] send = new StatItem[5];
+                            for (int i =0; i<5; i++) {
+                                send[i] = statistics.items[i].takeAndReset();
+                            }
+                            center.report(send);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

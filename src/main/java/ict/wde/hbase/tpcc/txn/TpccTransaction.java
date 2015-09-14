@@ -34,7 +34,6 @@ public abstract class TpccTransaction {
   public final String execute() {
     StringBuffer output = new StringBuffer(1024);
     HBaseConnection conn = this.connection();
-    int retryCount = 0;
     do {
       try {
         conn.startTransaction();
@@ -43,37 +42,16 @@ public abstract class TpccTransaction {
         else conn.rollback();
         break;
       }
-      catch (IOException e) {
-        ++retryCount;
-        if (retryCount % 5 == 0) {
-          System.err.println("Retry " + retryCount + ": " + e.toString());
-        }
-        try {
-          conn.rollback();
-        }
-        catch (IOException ioe) {
-          ioe.printStackTrace();
-        }
-      }
       catch (Exception e) {
-        ++retryCount;
-        if (retryCount % 5 == 0) {
-          System.err.println("Retry " + retryCount + ": " + e.toString());
-          e.printStackTrace();
-        }
+        e.printStackTrace();
         try {
           conn.rollback();
-        }
-        catch (IOException ioe) {
+        } catch (IOException ioe) {
           ioe.printStackTrace();
         }
-        Utils.sleep(Utils.random(1000, 2000));
-      }
-      if (retryCount > 20) {
         return null;
       }
-    }
-    while (true);
+    } while (true);
     return output.toString();
   }
 
