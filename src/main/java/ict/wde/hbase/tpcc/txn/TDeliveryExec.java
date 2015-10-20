@@ -43,7 +43,7 @@ public class TDeliveryExec extends TpccTransaction {
       throws IOException {
 
     // New-Order-find earliest
-    byte[] wid = Warehouse.toRowkey(w_id());
+    byte[] wid = Warehouse.toRowkey(w_id);
     byte[] did = District.toDid(d_id);
     byte[] nofromkey = NewOrder.toRowkey(wid, did, Order.OID_LOWER_BOUND_B);
     byte[] notokey = NewOrder.toRowkey(wid, did, Order.OID_UPPER_BOUND_B);

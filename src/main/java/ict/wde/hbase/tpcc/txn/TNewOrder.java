@@ -43,22 +43,29 @@ public class TNewOrder extends TpccTransaction {
 
   private int all_local = 1;
 
-  public TNewOrder(int w_id, HBaseConnection connection) {
+  public TNewOrder(int w_id, int d_id, HBaseConnection connection) {
     super(w_id, connection);
+    this.d_id = d_id;
   }
 
   @Override
   public void execute(HBaseConnection conn, StringBuffer output)
       throws IOException {
-    byte[] wid = Warehouse.toRowkey(w_id());
+    byte[] wid = Warehouse.toRowkey(w_id);
     byte[] did = District.toDid(d_id);
     byte[] cid = Customer.toCid(c_id);
 
     // Warehouse
     Get wget = new Get(wid);
     wget.addColumn(Const.NUMERIC_FAMILY, Warehouse.W_TAX);
-    long w_tax = Utils.b2n(conn.get(wget, Warehouse.TABLE).getValue(
-        Const.NUMERIC_FAMILY, Warehouse.W_TAX));
+    long w_tax;
+    try {
+      w_tax = Utils.b2n(conn.get(wget, Warehouse.TABLE).getValue(
+              Const.NUMERIC_FAMILY, Warehouse.W_TAX));
+    } catch (Exception e) {
+      System.out.println("Null ptr Warehouse rowkey to get TAX is " + Utils.bytesToHex(wid));
+      throw e;
+    }
 
     // District-read
     byte[] dkey = District.toRowkey(wid, did);
@@ -116,7 +123,7 @@ public class TNewOrder extends TpccTransaction {
 
     // Output-head
     output.append(String.format(LINE1, TITLE));
-    output.append(String.format(LINE2, w_id(), d_id,
+    output.append(String.format(LINE2, w_id, d_id,
         Utils.timeToStringMinute(entry_d)));
     output.append(String.format(LINE3, c_id, c_last, c_credit,
         discount(c_discount)));
@@ -132,6 +139,7 @@ public class TNewOrder extends TpccTransaction {
       if (i_id[i] < 0) { // unused, rollback
         break;
       }
+      // Item-read
       byte[] ikey = Item.toRowkey(i_id[i]);
       Get iget = new Get(ikey);
       iget.addColumn(Const.NUMERIC_FAMILY, Item.I_PRICE);
@@ -176,7 +184,7 @@ public class TNewOrder extends TpccTransaction {
 //      ++s_ytd;
       s_ytd += quantity[i]; // modified by tianqi
       ++s_order_cnt;
-      if (supp_w_id[i] != w_id()) {
+      if (supp_w_id[i] != w_id) {
         ++s_remote_cnt;
         sput.add(Const.NUMERIC_FAMILY, Stock.S_REMOTE_CNT,
             Utils.n2b(s_remote_cnt));
@@ -202,7 +210,7 @@ public class TNewOrder extends TpccTransaction {
           Const.NUMERIC_FAMILY, OrderLine.OL_AMOUNT, Utils.n2b(ol_amount));
       olput.add(Const.NUMERIC_FAMILY, OrderLine.OL_QUANTITY,
           Utils.n2b(quantity[i]));
-      conn.put(olput, OrderLine.TABLE);
+      conn.putStateless(olput, OrderLine.TABLE);
 
       // Output-Line
       if (rbk == 1) continue;
@@ -271,7 +279,6 @@ public class TNewOrder extends TpccTransaction {
 
   @Override
   public void generateInputData() {
-    d_id = Utils.randomDid();
     c_id = Utils.NURand_C_ID();
     ol_cnt = Utils.random(5, 15);
     rbk = Utils.random(1, 100);
@@ -284,11 +291,11 @@ public class TNewOrder extends TpccTransaction {
       quantity[i] = Utils.random(1, 10);
       int x = Utils.random(1, 100);
       if (Const.W == 1 || x > 1) {
-        supp_w_id[i] = w_id();
+        supp_w_id[i] = w_id;
       }
       else {
         all_local = 0;
-        supp_w_id[i] = Utils.randomWidExcept(w_id());
+        supp_w_id[i] = Utils.randomWidExcept(w_id);
       }
     }
     if (rbk == 1) {

@@ -16,10 +16,11 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 public abstract class DataPopulation implements Callable<Integer> {
 
-  public static final int POP_W_FROM = Integer.parseInt(System.getProperty(
-      "POP_W_FROM", "0"));
-  public static final int POP_W_TO = Integer.parseInt(System.getProperty(
-      "POP_W_TO", Integer.toString(Const.W - 1)));
+  protected final int wid;
+
+  public DataPopulation(int wid) {
+    this.wid = wid;
+  }
 
   static final int BATCH_OP = 1000;
 

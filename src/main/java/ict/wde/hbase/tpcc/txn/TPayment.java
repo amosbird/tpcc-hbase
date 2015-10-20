@@ -64,11 +64,11 @@ public class TPayment extends TpccTransaction {
     int y = Utils.random(1, 100);
     d_id = Utils.randomDid();
     if (x <= 85 || Const.W == 1) {
-      c_w_id = w_id();
+      c_w_id = w_id;
       c_d_id = d_id;
     }
     else {
-      c_w_id = Utils.randomWidExcept(w_id());
+      c_w_id = Utils.randomWidExcept(w_id);
       c_d_id = Utils.randomDid();
     }
     if (y <= 60) {
@@ -86,7 +86,7 @@ public class TPayment extends TpccTransaction {
   public void execute(HBaseConnection conn, StringBuffer output)
       throws IOException {
     // Warehouse-read
-    byte[] wkey = Warehouse.toRowkey(w_id());
+    byte[] wkey = Warehouse.toRowkey(w_id);
     Get wget = new Get(wkey);
     wget.addColumn(Const.TEXT_FAMILY, Warehouse.W_NAME);
     wget.addColumn(Const.TEXT_FAMILY, Warehouse.W_STREET_1);
@@ -98,8 +98,14 @@ public class TPayment extends TpccTransaction {
     Result wres = conn.get(wget, Warehouse.TABLE);
     long w_ytd = Utils
         .b2n(wres.getValue(Const.NUMERIC_FAMILY, Warehouse.W_YTD));
-    String w_name = new String(wres.getValue(Const.TEXT_FAMILY,
-        Warehouse.W_NAME));
+    String w_name;
+    try {
+      w_name = new String(wres.getValue(Const.TEXT_FAMILY,
+              Warehouse.W_NAME));
+    } catch (Exception e) {
+      System.out.println("Null ptr Warehouse rowkey to get NAME is " + Utils.bytesToHex(wkey));
+      throw e;
+    }
     String w_str1 = new String(wres.getValue(Const.TEXT_FAMILY,
         Warehouse.W_STREET_1));
     String w_str2 = new String(wres.getValue(Const.TEXT_FAMILY,
@@ -261,13 +267,13 @@ public class TPayment extends TpccTransaction {
     hput.add(Const.TEXT_FAMILY, History.H_DATA, h_data.getBytes());
     hput.add(Const.NUMERIC_FAMILY, History.H_AMOUNT, Utils.n2b(h_amount));
     hput.add(Const.NUMERIC_FAMILY, History.H_DATE, time);
-    conn.put(hput, History.TABLE);
+    conn.putStateless(hput, History.TABLE);
 
     // Output
     output.append(LINE01);
     output.append(String.format(LINE02, h_date));
     output.append(LINE03);
-    output.append(String.format(LINE04, w_id(), d_id));
+    output.append(String.format(LINE04, w_id, d_id));
     output.append(String.format(LINE05, w_str1, d_str1));
     output.append(String.format(LINE06, w_str2, d_str2));
     output.append(String.format(LINE07, w_city, w_state, w_zip, d_city,

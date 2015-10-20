@@ -28,7 +28,6 @@ public class OrderPop extends DataPopulation {
   static final int POP_TOTAL_ID = 3000;
   static final int NEW_ORDER_CNT = 2100;
 
-  private int wid = POP_W_FROM;
   private int did = 0;
   private int id = 0;
   private List<byte[]> cids = new ArrayList<byte[]>(3000);
@@ -38,43 +37,22 @@ public class OrderPop extends DataPopulation {
   private HTableInterface otable;
 
 
-  public OrderPop(Configuration conf, int id) throws IOException {
+  public OrderPop(Configuration conf, int wid) throws IOException {
+    super(wid);
     for (int i = 0; i < 3000; ++i) {
       cids.add(Customer.toCid(i));
     }
-    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, id + "");
+    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, wid + "");
     notable = new HTable(conf, NewOrder.TABLE);
     oltable = new HTable(conf, OrderLine.TABLE);
     ocitable = new HTable(conf, Order.TABLE_CUSTOMER_INDEX);
     otable = new HTable(conf, Order.TABLE);
     Collections.shuffle(cids);
-    System.out.println("Poping order data from w: " + POP_W_FROM + "-"
-        + POP_W_TO);
   }
 
-  public OrderPop(Configuration conf, ThreadPoolExecutor pool) throws IOException {
-    for (int i = 0; i < 3000; ++i) {
-      cids.add(Customer.toCid(i));
-    }
-    HConnection conn = HConnectionManager.createConnection(conf);
-    notable = new HTable(NewOrder.TABLE, conn, pool);
-    notable.setAutoFlush(false);
-    conn = HConnectionManager.createConnection(conf);
-    oltable = new HTable(OrderLine.TABLE, conn, pool);
-    oltable.setAutoFlush(false);
-    conn = HConnectionManager.createConnection(conf);
-    ocitable = new HTable(Order.TABLE_CUSTOMER_INDEX, conn, pool);
-    ocitable.setAutoFlush(false);
-    conn = HConnectionManager.createConnection(conf);
-    otable = new HTable(Order.TABLE, conn, pool);
-    otable.setAutoFlush(false);
-    Collections.shuffle(cids);
-    System.out.println("Poping order data from w: " + POP_W_FROM + "-"
-            + POP_W_TO);
-  }
   @Override
   public int popOneRow() throws IOException {
-    if (wid > POP_W_TO && did >= DistrictPop.POP_TOTAL_ID && id >= POP_TOTAL_ID) {
+    if (did >= DistrictPop.POP_TOTAL_ID) {
       ocitable.close();
       otable.close();
       notable.close();
@@ -101,11 +79,6 @@ public class OrderPop extends DataPopulation {
     ++id;
     if (id >= POP_TOTAL_ID) {
       ++did;
-      if (did >= DistrictPop.POP_TOTAL_ID) {
-        if (wid > POP_W_TO) return 0;
-        ++wid;
-        did = 0;
-      }
       Collections.shuffle(cids);
       id = 0;
     }

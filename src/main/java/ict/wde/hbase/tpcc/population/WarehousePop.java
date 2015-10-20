@@ -16,13 +16,15 @@ import org.apache.hadoop.hbase.util.Bytes;
 public class WarehousePop extends DataPopulation {
 
   static final byte[] YTD0 = Bytes.toBytes(30000000L);
-  private int id = POP_W_FROM;
   private HTableInterface wtable;
+  private int id;
 
-  public WarehousePop(Configuration conf, int id) throws IOException {
-    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, id + "");
+  public WarehousePop(Configuration conf, int wid) throws IOException {
+    super(wid);
+    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, wid + "");
     wtable = new HTable(conf, Warehouse.TABLE);
     wtable.setAutoFlush(false);
+    id = wid;
   }
 
   private byte[] name() {
@@ -51,7 +53,7 @@ public class WarehousePop extends DataPopulation {
 
   @Override
   public int popOneRow() throws IOException {
-    if (id > POP_W_TO) {
+    if (id > wid) {
       wtable.close();
       return 0;
     }

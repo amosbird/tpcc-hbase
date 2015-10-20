@@ -17,19 +17,19 @@ import org.apache.hadoop.hbase.util.Bytes;
 public class StockPop extends DataPopulation {
 
   static final long POP_TOTAL_ID = ItemPop.POP_TOTAL_ID;
-  private int wid = POP_W_FROM;
   private int iid = 0;
   private HTableInterface stable;
 
-  public StockPop(Configuration conf, int id) throws IOException {
-    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, id + "");
+  public StockPop(Configuration conf, int wid) throws IOException {
+    super(wid);
+    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, wid + "");
     stable = new HTable(conf, Stock.TABLE);
     stable.setAutoFlush(false);
   }
 
   @Override
   public int popOneRow() throws IOException {
-    if (wid > POP_W_TO && iid >= POP_TOTAL_ID) {
+    if (iid >= POP_TOTAL_ID) {
       stable.close();
       return 0;
     }
@@ -50,11 +50,6 @@ public class StockPop extends DataPopulation {
     put(put, stable);
 
     ++iid;
-    if (iid >= POP_TOTAL_ID) {
-      if (wid > POP_W_TO) return 0;
-      ++wid;
-      iid = 0;
-    }
     return 1;
   }
 

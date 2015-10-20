@@ -21,8 +21,9 @@ public class CustomerPop extends DataPopulation {
   private HTableInterface cidxtable;
   private HTableInterface htable;
 
-  public CustomerPop(Configuration conf, int id) throws IOException {
-    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, id + "");
+  public CustomerPop(Configuration conf, int wid) throws IOException {
+    super(wid);
+    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, wid + "");
     ctable = new HTable(conf, Customer.TABLE);
     ctable.setAutoFlush(false);
     cidxtable = new HTable(conf, Customer.TABLE_INDEX_LAST);
@@ -31,19 +32,6 @@ public class CustomerPop extends DataPopulation {
     htable.setAutoFlush(false);
   }
 
-  public CustomerPop(Configuration conf, ThreadPoolExecutor pool) throws IOException {
-    HConnection conn = HConnectionManager.createConnection(conf);
-    ctable = new HTable(Customer.TABLE, conn, pool);
-    ctable.setAutoFlush(false);
-    conn = HConnectionManager.createConnection(conf);
-    cidxtable = new HTable(Customer.TABLE_INDEX_LAST, conn, pool);
-    cidxtable.setAutoFlush(false);
-    conn = HConnectionManager.createConnection(conf);
-    htable = new HTable(History.TABLE, conn, pool);
-    htable.setAutoFlush(false);
-  }
-
-  private int wid = POP_W_FROM;
   private int did = 0;
   private int id = 0;
 
@@ -51,7 +39,7 @@ public class CustomerPop extends DataPopulation {
 
   @Override
   public int popOneRow() throws IOException {
-    if (wid > POP_W_TO && did >= DistrictPop.POP_TOTAL_ID && id >= POP_TOTAL_ID) {
+    if (did >= DistrictPop.POP_TOTAL_ID) {
       ctable.close();
       htable.close();
       cidxtable.close();
@@ -72,11 +60,6 @@ public class CustomerPop extends DataPopulation {
     ++id;
     if (id >= POP_TOTAL_ID) {
       ++did;
-      if (did >= DistrictPop.POP_TOTAL_ID) {
-        if (wid > POP_W_TO) return 0;
-        ++wid;
-        did = 0;
-      }
       id = 0;
     }
     return 3;

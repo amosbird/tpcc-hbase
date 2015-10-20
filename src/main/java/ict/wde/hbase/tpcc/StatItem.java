@@ -7,16 +7,13 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static java.lang.Long.max;
-import static java.lang.Long.min;
-
 /**
  * Created by amosb on 2015-08-27.
  */
 public class StatItem implements Writable {
 
     public AtomicLong count = new AtomicLong(0);
-    public AtomicLong timedoutCount = new AtomicLong(0);
+    public AtomicLong timeoutCount = new AtomicLong(0);
     public AtomicLong menuRT = new AtomicLong(0);
     public AtomicLong menuRTMax = new AtomicLong(0);
     public AtomicLong menuRTMin = new AtomicLong(Long.MAX_VALUE);
@@ -30,15 +27,16 @@ public class StatItem implements Writable {
     public AtomicLong thinkingTimeMax = new AtomicLong(0);
     public AtomicLong thinkingTimeMin = new AtomicLong(Long.MAX_VALUE);
 
-    private long timedoutThreshold;
+    private long timeoutThreshold;
     private String name;
 
     //Reflection needs this!!
-    public StatItem() {}
+    public StatItem() {
+    }
 
-    public StatItem(String name, long timedoutThreshold) {
+    public StatItem(String name, long timeoutThreshold) {
         this.name = name;
-        this.timedoutThreshold = timedoutThreshold;
+        this.timeoutThreshold = timeoutThreshold;
     }
 
     static String per(double n1, double n2) {
@@ -49,23 +47,19 @@ public class StatItem implements Writable {
     static double sec(long ts) {
         return ts / 1000.0;
     }
+
     public String toString(double total) {
         StringBuffer sb = new StringBuffer(128);
-        sb.append(String.format("%s: %d, %s, Timed out: %d, %s\n", name, count.get(),
-                per(count.get(), total), timedoutCount.get(), per(timedoutCount.get(), count.get())));
-        sb.append(String.format(
-                "    menuRT: Avg = %1.2f, Max = %1.2f, Min = %1.2f\n", sec(menuRT.get())
-                        / count.get(), sec(menuRTMax.get()), sec(menuRTMin.get())));
-        sb.append(String.format(
-                "    keyingTime: Avg = %1.2f, Max = %1.2f, Min = %1.2f\n",
+        sb.append(String.format("%s: %d, %s, Timed out: %d, %s\n",
+                name, count.get(), per(count.get(), total), timeoutCount.get(), per(timeoutCount.get(), count.get())));
+        sb.append(String.format( "    menuRT: Avg = %1.2f, Max = %1.2f, Min = %1.2f\n",
+                sec(menuRT.get()) / count.get(), sec(menuRTMax.get()), sec(menuRTMin.get())));
+        sb.append(String.format( "    keyingTime: Avg = %1.2f, Max = %1.2f, Min = %1.2f\n",
                 sec(keyingTime.get()) / count.get(), sec(keyingTimeMax.get()), sec(keyingTimeMin.get())));
-        sb.append(String.format(
-                "    txnRT: Avg = %1.2f, Max = %1.2f, Min = %1.2f\n", sec(txnRT.get())
-                        / count.get(), sec(txnRTMax.get()), sec(txnRTMin.get())));
-        sb.append(String
-                .format("    thinkingTime: Avg = %1.2f, Max = %1.2f, Min = %1.2f",
-                        sec(thinkingTime.get()) / count.get(), sec(thinkingTimeMax.get()),
-                        sec(thinkingTimeMin.get())));
+        sb.append(String.format( "    txnRT: Avg = %1.2f, Max = %1.2f, Min = %1.2f\n",
+                sec(txnRT.get()) / count.get(), sec(txnRTMax.get()), sec(txnRTMin.get())));
+        sb.append(String.format( "    thinkingTime: Avg = %1.2f, Max = %1.2f, Min = %1.2f",
+                sec(thinkingTime.get()) / count.get(), sec(thinkingTimeMax.get()), sec(thinkingTimeMin.get())));
         return sb.toString();
     }
 
@@ -80,9 +74,10 @@ public class StatItem implements Writable {
             v = c.getAndSet(v);
         }
     }
-    public synchronized void merge(StatItem s) {
+
+    public void merge(StatItem s) {
         count.addAndGet(s.count.get());
-        timedoutCount.addAndGet(s.timedoutCount.get());
+        timeoutCount.addAndGet(s.timeoutCount.get());
         menuRT.addAndGet(s.menuRT.get());
         keyingTime.addAndGet(s.keyingTime.get());
         txnRT.addAndGet(s.txnRT.get());
@@ -98,11 +93,11 @@ public class StatItem implements Writable {
         minSet(s.thinkingTimeMin.get(), thinkingTimeMin);
     }
 
-    public synchronized void stat(long menuRT, long keyingTime, long txnRT,
-                                  long thinkingTime) {
+    public void stat(long menuRT, long keyingTime, long txnRT,
+                     long thinkingTime) {
         count.addAndGet(1);
-        if (txnRT > timedoutThreshold) {
-            timedoutCount.addAndGet(1);
+        if (txnRT > timeoutThreshold) {
+            timeoutCount.addAndGet(1);
         }
 
         maxSet(menuRT, menuRTMax);
@@ -122,7 +117,7 @@ public class StatItem implements Writable {
     @Override
     public void write(DataOutput out) throws IOException {
         out.writeLong(count.get());
-        out.writeLong(timedoutCount.get());
+        out.writeLong(timeoutCount.get());
         out.writeLong(menuRT.get());
         out.writeLong(keyingTime.get());
         out.writeLong(txnRT.get());
@@ -140,7 +135,7 @@ public class StatItem implements Writable {
     @Override
     public void readFields(DataInput in) throws IOException {
         count.set(in.readLong());
-        timedoutCount.set(in.readLong());
+        timeoutCount.set(in.readLong());
         menuRT.set(in.readLong());
         keyingTime.set(in.readLong());
         txnRT.set(in.readLong());
@@ -158,7 +153,7 @@ public class StatItem implements Writable {
     public StatItem takeAndReset() {
         StatItem ret = new StatItem();
         ret.count.set(count.getAndSet(0));
-        ret.timedoutCount.set(timedoutCount.getAndSet(0));
+        ret.timeoutCount.set(timeoutCount.getAndSet(0));
         ret.menuRT.set(menuRT.getAndSet(0));
         ret.keyingTime.set(keyingTime.getAndSet(0));
         ret.txnRT.set(txnRT.getAndSet(0));

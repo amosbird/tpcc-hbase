@@ -55,7 +55,7 @@ public class TOrderStatus extends TpccTransaction {
   public void execute(HBaseConnection conn, StringBuffer output)
       throws IOException {
     // Customer id-read
-    byte[] wid = Warehouse.toRowkey(w_id());
+    byte[] wid = Warehouse.toRowkey(w_id);
     byte[] did = District.toDid(d_id);
     byte[] cid;
     if (this.c_last != null) {
@@ -118,7 +118,7 @@ public class TOrderStatus extends TpccTransaction {
 
     // Output-head
     output.append(LINE1);
-    output.append(String.format(LINE2, w_id(), d_id));
+    output.append(String.format(LINE2, w_id, d_id));
     output.append(String.format(LINE3, new String(cid), c_first, c_middle,
         c_last));
     output.append(String.format(LINE4, amount(c_balance)));

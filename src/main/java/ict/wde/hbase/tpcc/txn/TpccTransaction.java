@@ -14,17 +14,13 @@ public abstract class TpccTransaction {
   public static final char DELIVERY = 'D';
   public static final char STOCK_LEVEL = 'S';
 
-  private final int w_id;
+  protected final int w_id;
   private final HBaseConnection connection;
 
   public TpccTransaction(int w_id, HBaseConnection connection) {
     this.w_id = w_id;
     this.connection = connection;
     generateInputData();
-  }
-
-  public int w_id() {
-    return this.w_id;
   }
 
   public HBaseConnection connection() {

@@ -12,73 +12,79 @@ public class Utils {
       .toCharArray();
   static final char[] DIGIT_CHARSET = "0123456789".toCharArray();
 
-  private static Random rand() {
-    return new Random();
+  final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+  public static String bytesToHex(byte[] bytes) {
+    char[] hexChars = new char[bytes.length * 2];
+    for ( int j = 0; j < bytes.length; j++ ) {
+      int v = bytes[j] & 0xFF;
+      hexChars[j * 2] = hexArray[v >>> 4];
+      hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+    }
+    return new String(hexChars);
   }
+
+  private static ThreadLocal<Random> rand = new ThreadLocal<Random>() {
+    @Override protected Random initialValue() {
+      return new Random();
+    }
+  };
 
   public static int random(int x, int y) {
-    return random(rand(), x, y);
+    return x + rand.get().nextInt(y - x + 1);
   }
 
-  public static int random(Random rand, int x, int y) {
-    return x + rand.nextInt(y - x + 1);
+  static char randChar() {
+    return STRING_CHARSET[rand.get().nextInt(STRING_CHARSET.length)];
   }
 
-  static char randChar(Random rand) {
-    return STRING_CHARSET[rand.nextInt(STRING_CHARSET.length)];
+  static char randLetterChar() {
+    return LETTER_CHARSET[rand.get().nextInt(LETTER_CHARSET.length)];
   }
 
-  static char randLetterChar(Random rand) {
-    return LETTER_CHARSET[rand.nextInt(LETTER_CHARSET.length)];
-  }
-
-  static char randDigitChar(Random rand) {
-    return DIGIT_CHARSET[rand.nextInt(DIGIT_CHARSET.length)];
+  static char randDigitChar() {
+    return DIGIT_CHARSET[rand.get().nextInt(DIGIT_CHARSET.length)];
   }
 
   public static String randomLetterString(int x, int y) {
-    Random rand = rand();
-    int length = random(rand, x, y);
+    int length = random(x, y);
     StringBuffer sb = new StringBuffer(length);
     for (int i = 0; i < length; ++i) {
-      sb.append(randLetterChar(rand));
+      sb.append(randLetterChar());
     }
     return sb.toString();
   }
 
   public static String randomDigitString(int x, int y) {
-    Random rand = rand();
-    int length = random(rand, x, y);
+    int length = random(x, y);
     StringBuffer sb = new StringBuffer(length);
     for (int i = 0; i < length; ++i) {
-      sb.append(randDigitChar(rand));
+      sb.append(randDigitChar());
     }
     return sb.toString();
   }
 
   public static String randomString(int x, int y) {
-    Random rand = rand();
-    int length = random(rand, x, y);
+    int length = random(x, y);
     StringBuffer sb = new StringBuffer(length);
     for (int i = 0; i < length; ++i) {
-      sb.append(randChar(rand));
+      sb.append(randChar());
     }
     return sb.toString();
   }
 
   public static byte[] randomZip() {
-    Random rand = rand();
-    return String.format("%04d11111", rand.nextInt(10000)).getBytes();
+    return String.format("%04d11111", rand.get().nextInt(10000)).getBytes();
   }
 
   public static int randomDid() {
-    return Utils.random(0, 9);
+    return random(0, 9);
   }
 
   public static int randomWidExcept(int w_id) {
     int ret;
     do {
-      ret = Utils.random(0, Const.W - 1);
+      ret = random(0, Const.W - 1);
       if (Const.W == 1) break;
     }
     while (ret == w_id);
@@ -141,8 +147,7 @@ public class Utils {
 
   // (((random(0, A) | random(x, y)) + C) % (y - x + 1)) + x
   public static int NURand(int A, int C, int x, int y) {
-    Random rand = rand();
-    return (((random(rand, 0, A) | random(rand, x, y)) + C) % (y - x + 1)) + x;
+    return (((random(0, A) | random(x, y)) + C) % (y - x + 1)) + x;
   }
 
   public static void sleep(long millSec) {
@@ -164,12 +169,6 @@ public class Utils {
 
   private static final String SPACE10 = "          ";
 
-  public static String space(int n) {
-    StringBuffer sb = new StringBuffer(n);
-    appendSpace(n, sb);
-    return sb.toString();
-  }
-
   public static void appendSpace(int n, StringBuffer sb) {
     int div = n / 10;
     int mod = n % 10;
@@ -182,7 +181,7 @@ public class Utils {
   public static long thinkingTime(long u) {
     double r;
     do {
-      r = Math.random();
+      r = rand.get().nextDouble();
     }
     while (r == 0.0);
     return (long) (-Math.log(r) * u * 1000);

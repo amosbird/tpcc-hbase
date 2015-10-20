@@ -33,7 +33,7 @@ public class TDelivery extends TpccTransaction {
       throws IOException {
     // Output
     output.append(LINE1);
-    output.append(String.format(LINE2, w_id()));
+    output.append(String.format(LINE2, w_id));
     output.append(LINE3);
     output.append(String.format(LINE4, o_carrier_id));
     output.append(LINE5);
@@ -58,7 +58,7 @@ public class TDelivery extends TpccTransaction {
 
   @Override
   public String getReportMessage() {
-    return String.format("%c\n%d %d %d", TpccTransaction.DELIVERY, w_id(),
+    return String.format("%c\n%d %d %d", TpccTransaction.DELIVERY, w_id,
         o_carrier_id, ol_delivery_d);
   }
 

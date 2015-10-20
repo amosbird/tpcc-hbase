@@ -14,7 +14,17 @@ import org.apache.hadoop.conf.Configuration;
 
 public class Main {
 
-  static List<DataPopulation> tables = new ArrayList<DataPopulation>();
+  static List<DataPopulation> tables = new ArrayList<>();
+  static int wb;
+  static int we;
+  static {
+    try {
+      wb = Integer.parseInt(System.getProperty("POP_W_FROM"));
+      we = Integer.parseInt(System.getProperty("POP_W_TO"));
+    } catch (Exception e) {
+
+    }
+  }
 
   public static void main(String[] args) {
     String zkAddr = args[0];
@@ -26,37 +36,47 @@ public class Main {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    ExecutorService es = Executors.newCachedThreadPool();
+    ExecutorService es = Executors.newFixedThreadPool(48);
     try {
       es.invokeAll(tables);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
+    es.shutdown();
   }
 
   private static void initTablePopulation(String chars, Configuration config) throws IOException {
-    Set<Character> hash = new HashSet<Character>();
+    Set<Character> hash = new HashSet<>();
     for (char c : chars.toCharArray()) {
-      int id = 0;
       if (hash.contains(c)) continue;
       switch (c) {
       case 'i':
-        tables.add(new ItemPop(config, id ++));
+        tables.add(new ItemPop(config, 0));
         break;
       case 'w':
-        tables.add(new WarehousePop(config, id ++));
+        for (int i = wb; i <= we; i++) {
+          tables.add(new WarehousePop(config, i));
+        }
         break;
       case 's':
-        tables.add(new StockPop(config, id ++));
+        for (int i = wb; i <= we; i++) {
+          tables.add(new StockPop(config, i));
+        }
         break;
       case 'd':
-        tables.add(new DistrictPop(config, id ++));
+        for (int i = wb; i <= we; i++) {
+          tables.add(new DistrictPop(config, i));
+        }
         break;
       case 'c':
-        tables.add(new CustomerPop(config, id ++));
+        for (int i = wb; i <= we; i++) {
+          tables.add(new CustomerPop(config, i));
+        }
         break;
       case 'o':
-        tables.add(new OrderPop(config, id ++));
+        for (int i = wb; i <= we; i++) {
+          tables.add(new OrderPop(config, i));
+        }
         break;
       default:
         continue;

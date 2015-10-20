@@ -16,24 +16,19 @@ import org.apache.hadoop.hbase.util.Bytes;
 public class DistrictPop extends DataPopulation {
 
   static final int POP_TOTAL_ID = 10;
-  private int wid = POP_W_FROM;
   private int did = 0;
   private HTableInterface dtable;
 
-  public DistrictPop(Configuration conf, int id) throws IOException {
-    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, id + "");
+  public DistrictPop(Configuration conf, int wid) throws IOException {
+    super(wid);
+    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, wid + "");
     dtable = new HTable(conf, District.TABLE);
 
   }
 
-  public DistrictPop(Configuration conf, ThreadPoolExecutor pool) throws IOException {
-    HConnection conn = HConnectionManager.createConnection(conf);
-    dtable = new HTable(District.TABLE, conn, pool);
-    dtable.setAutoFlush(false);
-  }
   @Override
   public int popOneRow() throws IOException {
-    if (wid > POP_W_TO) {
+    if (did >= DistrictPop.POP_TOTAL_ID) {
       dtable.close();
       return 0;
     }
@@ -56,10 +51,6 @@ public class DistrictPop extends DataPopulation {
     put(put, dtable);
 
     ++did;
-    if (did >= POP_TOTAL_ID) {
-      ++wid;
-      did = 0;
-    }
     return 1;
   }
 

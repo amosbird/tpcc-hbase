@@ -41,7 +41,7 @@ public class TStockLevel extends TpccTransaction {
   @Override
   public void execute(HBaseConnection conn, StringBuffer output)
       throws IOException {
-    byte[] wid = Warehouse.toRowkey(w_id());
+    byte[] wid = Warehouse.toRowkey(w_id);
     byte[] did = District.toDid(d_id);
     // District
     byte[] dkey = District.toRowkey(wid, did);
@@ -77,7 +77,7 @@ public class TStockLevel extends TpccTransaction {
 
     // Output
     output.append(LINE1);
-    output.append(String.format(LINE2, w_id(), d_id));
+    output.append(String.format(LINE2, w_id, d_id));
     output.append(LINE3);
     output.append(String.format(LINE4, threshold));
     output.append(LINE5);

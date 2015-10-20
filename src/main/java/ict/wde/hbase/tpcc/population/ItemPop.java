@@ -19,8 +19,9 @@ public class ItemPop extends DataPopulation {
   private int id = 0;
   private HTableInterface itable;
 
-  public ItemPop(Configuration conf, int id) throws IOException {
-    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, id + "");
+  public ItemPop(Configuration conf, int wid) throws IOException {
+    super(wid);
+    conf.set(HConstants.HBASE_CLIENT_INSTANCE_ID, wid + "");
     itable = new HTable(conf, Item.TABLE);
     itable.setAutoFlush(false);
   }

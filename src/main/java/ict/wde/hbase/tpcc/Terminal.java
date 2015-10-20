@@ -46,9 +46,6 @@ public class Terminal extends Thread {
         long t1 = System.currentTimeMillis();
         TpccTransaction t = getTransaction();
         // Parent contact 1 (trasaction type & message)
-//        System.out.println(sl_d_id + " - Before Executing: "
-//            + t.getReportMessage());
-
         if (t.getType() == TpccTransaction.DELIVERY) {
           center.reportMessage(t.getReportMessage());
         }
@@ -125,7 +122,7 @@ public class Terminal extends Thread {
         new Configuration());
   }
 
-  private ArrayList<Character> deck = new ArrayList<Character>(23);
+  private ArrayList<Character> deck = new ArrayList<>(23);
   private int deckI = 0;
 
   private TpccTransaction getTransaction() {
@@ -145,7 +142,7 @@ public class Terminal extends Thread {
       char type = deck.get(deckI);
       switch (type) {
       case TpccTransaction.NEW_ORDER:
-        return new TNewOrder(w_id, connection);
+        return new TNewOrder(w_id, sl_d_id, connection);
       case TpccTransaction.PAYMENT:
         return new TPayment(w_id, connection);
       case TpccTransaction.ORDER_STATUS:
@@ -166,6 +163,7 @@ public class Terminal extends Thread {
   private static String zkAddr;
   private static String rpcAddr;
   private static String outputDir;
+  private static int terminalNum;
 
   private static void parseArgs(String[] args) {
     wRange = new int[2];
@@ -180,6 +178,7 @@ public class Terminal extends Thread {
     zkAddr = args[1];
     outputDir = args[2];
     rpcAddr = args[3];
+    terminalNum = Integer.parseInt(args[4]);
   }
 
   public static void main(String[] args) throws Exception {
@@ -188,9 +187,9 @@ public class Terminal extends Thread {
     Reporter r = new Reporter(rpcAddr);
     r.start();
     for (int w = wRange[0]; w <= wRange[1]; ++w) {
-      for (int d = 0; d < 10; ++d) {
-        Terminal t = new Terminal(w*10 + d, w, d, String.format("%s/%d-%d.log",
-            outputDir, w, d), r);
+      for (int d = 0; d < terminalNum; ++d) {
+        Terminal t = new Terminal(
+            w*terminalNum + d, w, Utils.randomDid(), String.format("%s/%d-%d.log", outputDir, w, d), r);
         t.start();
       }
     }
