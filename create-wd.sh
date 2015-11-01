@@ -5,7 +5,7 @@ BASE_LIB=${BASE_DIR}/lib
 
 CP=`echo $BASE_DIR/tpcc*.jar`:`echo ${BASE_LIB}/*.jar | sed 's/ /:/g'`
 
-TABLE_CONF=$BASE_DIR/table.conf
+TABLE_CONF=$BASE_DIR/wd.conf
 ZK_ADDR=nobida143:2181
 DROP_OLD_TABLES=true
 

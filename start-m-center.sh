@@ -1,17 +1,13 @@
-SCRIPT_NAME=$0
-BIN_DIR=`dirname ${SCRIPT_NAME}`
-BASE_DIR="${BIN_DIR}"
+BASE_DIR=$(dirname $(readlink -f $0))
 BASE_LIB=${BASE_DIR}/lib
 
-source $BASE_DIR/params.sh
-
 CP=`echo $BASE_DIR/tpcc*.jar`:`echo ${BASE_LIB}/*.jar | sed 's/ /:/g'`
-#VM_ARGS="-DW=$W -DC_C_ID=$C_C_ID_LOAD -DC_C_LAST=$C_C_LAST_LOAD -DC_OL_I_ID=$C_OL_I_ID_LOAD"
-VM_ARGS="-DW=$W"
+#VM_ARGS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=10099"
+VM_ARGS="-XX:-OmitStackTraceInFastThrow"
 
-ZK_ADDR=processor018:2181
-RPC_ADDR=vm0:1988
-OUTPUT=/root/tpcc/thread-output
+ZK_ADDR=nobida143:2181
+RPC_ADDR=nobida143:1988
+OUTPUT=/opt/tpcc/thread-output
 
 TEST_RUN=$1
 OUTPUT=$OUTPUT-$TEST_RUN

@@ -50,7 +50,7 @@ public class Terminal extends Thread {
           center.reportMessage(t.getReportMessage());
         }
         long t2 = System.currentTimeMillis();
-        t.waitForKeying();
+        //t.waitForKeying();
         long t3 = System.currentTimeMillis();
         String output = t.execute();
         if (output == null) {
@@ -58,7 +58,7 @@ public class Terminal extends Thread {
         }
         output(output);
         long t4 = System.currentTimeMillis();
-        t.waitForThinking();
+        //t.waitForThinking();
         long t5 = System.currentTimeMillis();
         // Parent contact 2 (summary)
         tellParent(t, t2 - t1, t3 - t2, t4 - t3, t5 - t4);
@@ -125,7 +125,9 @@ public class Terminal extends Thread {
   private ArrayList<Character> deck = new ArrayList<>(23);
   private int deckI = 0;
 
+
   private TpccTransaction getTransaction() {
+    if(true) return new TNewOrder(w_id, sl_d_id, connection);
     if (deck.size() == 0) {
       for (int i = 0; i < 10; ++i) {
         deck.add(TpccTransaction.NEW_ORDER);

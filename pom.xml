@@ -49,6 +49,15 @@
             </plugin>
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                  <execution>
+                    <id>copy-dependencies</id>
+                    <phase>package</phase>
+                    <goals>
+                      <goal>copy-dependencies</goal>
+                    </goals>
+                  </execution>
+                </executions>
                 <configuration>
                     <outputDirectory>.\lib</outputDirectory>
                 </configuration>

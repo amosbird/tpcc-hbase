@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+BASE_DIR=$(dirname $(readlink -f $0))
+BASE_LIB=${BASE_DIR}/lib
+
+CP=`echo $BASE_DIR/tpcc*.jar`:`echo ${BASE_LIB}/*.jar | sed 's/ /:/g'`
+java -cp $CP ict.wde.domino.console.DominoConsole nobida143:2181
+

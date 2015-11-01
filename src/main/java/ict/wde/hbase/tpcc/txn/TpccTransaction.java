@@ -43,6 +43,7 @@ public abstract class TpccTransaction {
         try {
           conn.rollback();
         } catch (IOException ioe) {
+          System.out.println("Roll back failed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
           ioe.printStackTrace();
         }
         return null;

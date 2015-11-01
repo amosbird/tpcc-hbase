@@ -16,13 +16,15 @@ import org.apache.hadoop.hbase.client.Scan;
 public class OidValidate {
 
   public static void main(String[] args) throws Exception {
-    HBaseConnection conn = new DominoDriver().getConnection("p18:2181");
+    HBaseConnection conn = new DominoDriver().getConnection("nobida143:2181");
     conn.startTransaction();
     byte[] wid = Warehouse.toRowkey(120);
+    Get wget = new Get(wid);
     byte[] did = District.toDid(0);
     Get dget = new Get(District.toRowkey(wid, did));
     dget.addColumn(Const.NUMERIC_FAMILY, District.D_NEXT_O_ID);
     Result dres = conn.get(dget, District.TABLE);
+    Result wres = conn.get(wget, Warehouse.TABLE);
     long dnoid = Utils.b2n(dres.getValue(Const.NUMERIC_FAMILY,
         District.D_NEXT_O_ID));
     System.out.println("D_NEXT_O_ID = " + dnoid);
